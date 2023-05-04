@@ -16,90 +16,88 @@ import (
 	"go.uber.org/zap"
 )
 
-func WordJoinPersistenceId(ctx context.Context, m message.Message[message.Bytes, message.Bytes]) (string, error) {
-	return string(m.Key), nil
+func WordJoinPersistenceId(ctx context.Context, m message.Message[string, string]) (string, error) {
+	return m.Key, nil
 }
 
-func WordJoinCountFunction(c context.Context, m message.Message[message.Bytes, message.Bytes], inState stateful.SingleState[message.Bytes]) ([]message.Message[message.Bytes, message.Bytes], stateful.SingleState[message.Bytes], error) {
+func WordJoinCountFunction(c context.Context, m message.Message[string, string], s stateful.SingleState[*function_protobuf.WordJoinState]) (*message.Message[string, string], stateful.SingleState[*function_protobuf.WordJoinState], error) {
 	logger.Info("applying")
 
-	// format conversion to something more usable, will be abstracted out also in the future
-	protoState, protoStateMapErr := stateful.ConvertSingleState(inState, format.Bytes(), format.Protobuf[*function_protobuf.WordJoinState]())
-	if protoStateMapErr != nil {
-		return make([]message.Message[[]byte, []byte], 0), inState, protoStateMapErr
-	}
-
 	// setting defaults
-	if protoState.Content == nil {
-		protoState.Content = &function_protobuf.WordJoinState{Count: 0, Word: ""}
+	if s.Content == nil {
+		s.Content = &function_protobuf.WordJoinState{Count: 0, Word: ""}
 	}
 
 	// update state
-	protoState.Content.Count += 1
+	s.Content.Count += 1
 
-	logger.Info("info", zap.Int64("count", protoState.Content.Count), zap.String("word", protoState.Content.Word))
-
-	// map back to bytes
-	nextByteState, nextByteStateMapErr := stateful.ConvertSingleState(protoState, format.Protobuf[*function_protobuf.WordJoinState](), format.Bytes())
-	if nextByteStateMapErr != nil {
-		return make([]message.Message[[]byte, []byte], 0), inState, nextByteStateMapErr
-	}
+	logger.Info("info", zap.Int64("count", s.Content.Count), zap.String("word", s.Content.Word))
 
 	// create output message
-	outMessage := message.Message[message.Bytes, message.Bytes]{
+	outMessage := message.Message[string, string]{
 		Topic: "word-join",
 		Key:   m.Key,
-		Value: []byte(reflect.GetString(protoState.Content.Count) + " " + protoState.Content.Word),
+		Value: reflect.GetString(s.Content.Count) + " " + s.Content.Word,
 	}
 
-	return []message.Message[[]byte, []byte]{outMessage}, nextByteState, nil
+	return &outMessage, s, nil
 }
 
-func WordJoinWordFunction(c context.Context, m message.Message[message.Bytes, message.Bytes], inState stateful.SingleState[message.Bytes]) ([]message.Message[message.Bytes, message.Bytes], stateful.SingleState[message.Bytes], error) {
+func WordJoinWordFunction(c context.Context, m message.Message[string, string], s stateful.SingleState[*function_protobuf.WordJoinState]) (*message.Message[string, string], stateful.SingleState[*function_protobuf.WordJoinState], error) {
 	logger.Info("applying")
 
-	// format conversion to something more usable, will be abstracted out also in the future
-	protoState, protoStateMapErr := stateful.ConvertSingleState(inState, format.Bytes(), format.Protobuf[*function_protobuf.WordJoinState]())
-	if protoStateMapErr != nil {
-		return make([]message.Message[[]byte, []byte], 0), inState, protoStateMapErr
-	}
-
 	// setting defaults
-	if protoState.Content == nil {
-		protoState.Content = &function_protobuf.WordJoinState{Count: 0, Word: ""}
+	if s.Content == nil {
+		s.Content = &function_protobuf.WordJoinState{Count: 0, Word: ""}
 	}
 
 	// update state
-	protoState.Content.Word = string(m.Value)
+	s.Content.Word = string(m.Value)
 
-	logger.Info("info", zap.Int64("count", protoState.Content.Count), zap.String("word", protoState.Content.Word))
-
-	// map back to bytes
-	nextByteState, nextByteStateMapErr := stateful.ConvertSingleState(protoState, format.Protobuf[*function_protobuf.WordJoinState](), format.Bytes())
-	if nextByteStateMapErr != nil {
-		return make([]message.Message[[]byte, []byte], 0), inState, nextByteStateMapErr
-	}
+	logger.Info("info", zap.Int64("count", s.Content.Count), zap.String("word", s.Content.Word))
 
 	// create output message
-	outMessage := message.Message[message.Bytes, message.Bytes]{
+	outMessage := message.Message[string, string]{
 		Topic: "word-join",
 		Key:   m.Key,
-		Value: []byte(reflect.GetString(protoState.Content.Count) + " " + protoState.Content.Word),
+		Value: reflect.GetString(s.Content.Count) + " " + s.Content.Word,
 	}
 
-	return []message.Message[[]byte, []byte]{outMessage}, nextByteState, nil
+	return &outMessage, s, nil
 }
 
 func WordJoinRun() runtime.Runtime {
 	joinFunctionConfiguration := flows.JoinPostgresqlFunctionConfiguration{
 
 		StatefulFunctions: map[string]stateful.SingleFunction{
-			"word":      WordJoinCountFunction,
-			"word-type": WordJoinWordFunction,
+			"word": stateful.ConvertOneToOne(
+				WordJoinCountFunction,
+				format.Protobuf[*function_protobuf.WordJoinState](),
+				format.String(),
+				format.String(),
+				format.String(),
+				format.String(),
+			),
+			"word-type": stateful.ConvertOneToOne(
+				WordJoinWordFunction,
+				format.Protobuf[*function_protobuf.WordJoinState](),
+				format.String(),
+				format.String(),
+				format.String(),
+				format.String(),
+			),
 		},
 		PersistenceIdFunctions: map[string]stateful.PersistenceIdFunction[message.Bytes, message.Bytes]{
-			"word":      WordJoinPersistenceId,
-			"word-type": WordJoinPersistenceId,
+			"word": stateful.ConvertPersistenceId(
+				WordJoinPersistenceId,
+				format.String(),
+				format.String(),
+			),
+			"word-type": stateful.ConvertPersistenceId(
+				WordJoinPersistenceId,
+				format.String(),
+				format.String(),
+			),
 		},
 
 		IntermediateTopicName: "word-join-intermediate",
