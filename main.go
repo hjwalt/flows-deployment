@@ -9,9 +9,9 @@ import (
 func main() {
 	m := flows.Main()
 
-	m.Register("word-count", function.WordCountRun())
-	m.Register("word-remap", function.WordRemapRun())
-	m.Register("word-join", function.WordJoinRun())
+	m.Register("word-count", function.WordCountRun)
+	m.Register("word-remap", function.WordRemapRun)
+	m.Register("word-join", function.WordJoinRun)
 
 	err := m.Start(environment.GetString("INSTANCE", "word-count"))
 

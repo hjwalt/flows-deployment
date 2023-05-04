@@ -11,10 +11,10 @@ import (
 	"github.com/hjwalt/flows/protobuf"
 	"github.com/hjwalt/flows/router"
 	"github.com/hjwalt/flows/runtime"
+	"github.com/hjwalt/flows/runtime_bun"
 	"github.com/hjwalt/flows/runtime_bunrouter"
 	"github.com/hjwalt/flows/runtime_sarama"
 	"github.com/hjwalt/flows/stateful"
-	"github.com/hjwalt/flows/stateful_bun"
 	"github.com/hjwalt/runway/logger"
 	"github.com/hjwalt/runway/reflect"
 	"github.com/uptrace/bunrouter"
@@ -66,9 +66,9 @@ func WordCountRun() runtime.Runtime {
 		PersistenceIdFunction: WordCountPersistenceId,
 		PersistenceTableName:  "public.flows_state",
 
-		PostgresqlConfiguration: []runtime.Configuration[*stateful_bun.PostgresqlConnection]{
-			stateful_bun.WithApplicationName("flows"),
-			stateful_bun.WithConnectionString("postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable"),
+		PostgresqlConfiguration: []runtime.Configuration[*runtime_bun.PostgresqlConnection]{
+			runtime_bun.WithApplicationName("flows"),
+			runtime_bun.WithConnectionString("postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable"),
 		},
 		KafkaProducerConfiguration: []runtime.Configuration[*runtime_sarama.Producer]{
 			runtime_sarama.WithProducerSaramaConfig(runtime_sarama.DefaultConfiguration()),

@@ -8,9 +8,9 @@ import (
 	"github.com/hjwalt/flows/format"
 	"github.com/hjwalt/flows/message"
 	"github.com/hjwalt/flows/runtime"
+	"github.com/hjwalt/flows/runtime_bun"
 	"github.com/hjwalt/flows/runtime_sarama"
 	"github.com/hjwalt/flows/stateful"
-	"github.com/hjwalt/flows/stateful_bun"
 	"github.com/hjwalt/runway/logger"
 	"github.com/hjwalt/runway/reflect"
 	"go.uber.org/zap"
@@ -93,11 +93,11 @@ func WordJoinWordFunction(c context.Context, m message.Message[message.Bytes, me
 func WordJoinRun() runtime.Runtime {
 	joinFunctionConfiguration := flows.JoinPostgresqlFunctionConfiguration{
 
-		StatefulFunctions: map[string]stateful.StatefulBinarySingleFunction{
+		StatefulFunctions: map[string]stateful.SingleFunction{
 			"word":      WordJoinCountFunction,
 			"word-type": WordJoinWordFunction,
 		},
-		PersistenceIdFunctions: map[string]stateful.StatefulBinaryPersistenceIdFunction{
+		PersistenceIdFunctions: map[string]stateful.PersistenceIdFunction[message.Bytes, message.Bytes]{
 			"word":      WordJoinPersistenceId,
 			"word-type": WordJoinPersistenceId,
 		},
@@ -105,9 +105,9 @@ func WordJoinRun() runtime.Runtime {
 		IntermediateTopicName: "word-join-intermediate",
 		PersistenceTableName:  "public.flows_state",
 
-		PostgresqlConfiguration: []runtime.Configuration[*stateful_bun.PostgresqlConnection]{
-			stateful_bun.WithApplicationName("flows"),
-			stateful_bun.WithConnectionString("postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable"),
+		PostgresqlConfiguration: []runtime.Configuration[*runtime_bun.PostgresqlConnection]{
+			runtime_bun.WithApplicationName("flows"),
+			runtime_bun.WithConnectionString("postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable"),
 		},
 		KafkaProducerConfiguration: []runtime.Configuration[*runtime_sarama.Producer]{
 			runtime_sarama.WithProducerSaramaConfig(runtime_sarama.DefaultConfiguration()),
