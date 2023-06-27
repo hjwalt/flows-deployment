@@ -16,14 +16,19 @@ htmlcov: test
 
 tidy:
 	go mod tidy
+	go mod vendor
 	go fmt ./...
 
 update:
 	go get -u ./...
 	go mod tidy
+	go mod vendor
 	go fmt ./...
 
 # --------------------
+
+build:
+	go build -o bin/flows
 
 run:
 	go run ./main
