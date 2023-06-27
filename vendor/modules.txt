@@ -49,6 +49,7 @@ github.com/hashicorp/go-uuid
 # github.com/hjwalt/flows v0.0.9
 ## explicit; go 1.20
 github.com/hjwalt/flows
+github.com/hjwalt/flows/configuration
 github.com/hjwalt/flows/format
 github.com/hjwalt/flows/join
 github.com/hjwalt/flows/materialise
