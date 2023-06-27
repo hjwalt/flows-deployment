@@ -1,4 +1,4 @@
-package function
+package fn_join
 
 import (
 	"context"
@@ -66,7 +66,7 @@ func WordJoinWordFunction(c context.Context, m message.Message[string, string], 
 	return &outMessage, s, nil
 }
 
-func WordJoinRun() runtime.Runtime {
+func Runtime() runtime.Runtime {
 	joinFunctionConfiguration := flows.JoinPostgresqlFunctionConfiguration{
 
 		StatefulFunctions: map[string]stateful.SingleFunction{

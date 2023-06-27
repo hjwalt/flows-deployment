@@ -5,6 +5,7 @@ go 1.20
 require (
 	github.com/hjwalt/flows v0.0.9
 	github.com/hjwalt/runway v0.0.3
+	github.com/uptrace/bun v1.1.14
 	github.com/uptrace/bunrouter v1.0.20
 	go.uber.org/zap v1.24.0
 	google.golang.org/protobuf v1.31.0
@@ -44,7 +45,6 @@ require (
 	github.com/prometheus/procfs v0.11.0 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
 	github.com/tmthrgd/go-hex v0.0.0-20190904060850-447a3041c3bc // indirect
-	github.com/uptrace/bun v1.1.14 // indirect
 	github.com/uptrace/bun/dialect/pgdialect v1.1.14 // indirect
 	github.com/uptrace/bun/driver/pgdriver v1.1.14 // indirect
 	github.com/uptrace/bun/extra/bundebug v1.1.14 // indirect

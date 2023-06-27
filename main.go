@@ -2,6 +2,8 @@ package main
 
 import (
 	"github.com/hjwalt/flows"
+	"github.com/hjwalt/flows-deployment/fn_join"
+	"github.com/hjwalt/flows-deployment/fn_materialise"
 	"github.com/hjwalt/flows-deployment/function"
 	"github.com/hjwalt/flows/configuration"
 	"github.com/hjwalt/flows/format"
@@ -20,7 +22,8 @@ func main() {
 
 	m.Register("word-count", function.WordCountRun)
 	m.Register("word-remap", function.WordRemapRun)
-	m.Register("word-join", function.WordJoinRun)
+	m.Register("word-join", fn_join.Runtime)
+	m.Register("materialise", fn_materialise.Runtime)
 
 	err := m.Start(environment.GetString("INSTANCE", "word-count"))
 
