@@ -2,12 +2,14 @@ package main
 
 import (
 	"github.com/hjwalt/flows"
-	"github.com/hjwalt/flows-deployment/fn_join"
-	"github.com/hjwalt/flows-deployment/fn_materialise"
-	"github.com/hjwalt/flows-deployment/function"
-	"github.com/hjwalt/flows/configuration"
-	"github.com/hjwalt/flows/format"
+	"github.com/hjwalt/flows-deployment/example/example_word_collect"
+	"github.com/hjwalt/flows-deployment/example/example_word_count"
+	"github.com/hjwalt/flows-deployment/example/example_word_join"
+	"github.com/hjwalt/flows-deployment/example/example_word_materialise"
+	"github.com/hjwalt/flows-deployment/example/example_word_remap"
+	"github.com/hjwalt/runway/configuration"
 	"github.com/hjwalt/runway/environment"
+	"github.com/hjwalt/runway/format"
 )
 
 type Config struct {
@@ -16,16 +18,17 @@ type Config struct {
 }
 
 func main() {
-	m := flows.Main()
+	m := flows.NewMain()
 
 	configuration.Read("config.yaml", format.Yaml[Config]())
 
-	m.Register("word-count", function.WordCountRun)
-	m.Register("word-remap", function.WordRemapRun)
-	m.Register("word-join", fn_join.Runtime)
-	m.Register("materialise", fn_materialise.Runtime)
+	example_word_collect.Register(m)
+	example_word_count.Register(m)
+	example_word_join.Register(m)
+	example_word_materialise.Register(m)
+	example_word_remap.Register(m)
 
-	err := m.Start(environment.GetString("INSTANCE", "word-count"))
+	err := m.Start(environment.GetString("INSTANCE", flows.AllInstances))
 
 	if err != nil {
 		panic(err)
